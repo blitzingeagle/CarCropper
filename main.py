@@ -1,5 +1,6 @@
 import os
 from glob import glob
+import json
 
 darknet_path = "/root/darknet_v2.0"
 os.environ["PATH"] = darknet_path + ":" + os.environ["PATH"]
@@ -14,14 +15,24 @@ def process_video(video, output_dir):
     os.system(cmd)
 
 
-def crop_images(output_dir, tag="car"):
-    target_dir = os.path.join(output_dir, tag)
+def target_search(output_dir, target="car"):
+    target_dir = os.path.join(output_dir, target)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
     with open(os.path.join(output_dir, "frame.txt")) as f:
-        content = f.readlines()
+        frame_data = [line.strip() for line in f.readlines()]
 
+    for data in frame_data:
+        info = json.loads(data)
+        frame = os.path.basename(info["filename"])
+        tag_list = info["tag"]
+        for tag in tag_list:
+            if target in tag:
+                print(tag)
+
+target_search(".")
+exit()
 
 input_dirs = glob("input/*")
 for input_dir in input_dirs:
