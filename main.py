@@ -12,7 +12,7 @@ if len(glob("yolo.weights")) == 0:
 
 
 def process_video(video, output_dir):
-    cmd = "darknety detector demo cfg/coco.data cfg/yolo.cfg yolo.weights {} -prefix {}".format(video, os.path.join(output_dir, "frame"))
+    cmd = "darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights {} -prefix {}".format(video, os.path.join(output_dir, "frame"))
     print(">", cmd)
     os.system(cmd)
 
@@ -20,8 +20,12 @@ def process_video(video, output_dir):
 def crop_image(image_path, tag):
     (top, bot, left, right) = (tag["top"], tag["bot"], tag["left"], tag["right"])
     print(image_path, "Top:{} Bot:{} Left:{} Right:{}".format(top, bot, left, right))
-    img = np.array(Image.open(image_path))
-    return Image.fromarray(img[top:bot, left:right])
+
+    if os.path.isfile(image_path):
+        img = np.array(Image.open(image_path))
+        return Image.fromarray(img[top:bot, left:right])
+
+    return None
 
 def target_search(output_dir, target="car"):
     target_dir = os.path.join(output_dir, target)
@@ -39,13 +43,13 @@ def target_search(output_dir, target="car"):
         for tag in tag_list:
             if target in tag:
                 img = crop_image(os.path.join(output_dir, frame), tag)
-                file = os.path.join(target_dir, frame.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
-                img.save(file)
-                print(file)
-                cnt += 1
 
-target_search("/root/darknet_v2.0/results")
-exit()
+                if img is not None:
+                    file = os.path.join(target_dir, frame.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
+                    img.save(file)
+                    print(file)
+                    cnt += 1
+
 
 input_dirs = glob("input/*")
 for input_dir in input_dirs:
