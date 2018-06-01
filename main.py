@@ -1,6 +1,8 @@
 import os
 from glob import glob
 import json
+from PIL import Image
+import numpy as np
 
 darknet_path = "/root/darknet_v2.0"
 os.environ["PATH"] = darknet_path + ":" + os.environ["PATH"]
@@ -15,6 +17,12 @@ def process_video(video, output_dir):
     os.system(cmd)
 
 
+def crop_image(image_path, tag):
+    (top, bot, left, right) = (tag["top"], tag["bot"], tag["left"], tag["right"])
+    print(image_path, "Top:{} Bot:{} Left:{} Right:{}".format(top, bot, left, right))
+    img = np.array(Image.open(image_path))
+    return Image.fromarray(img[top:bot, left:right])
+
 def target_search(output_dir, target="car"):
     target_dir = os.path.join(output_dir, target)
     if not os.path.exists(target_dir):
@@ -27,11 +35,16 @@ def target_search(output_dir, target="car"):
         info = json.loads(data)
         frame = os.path.basename(info["filename"])
         tag_list = info["tag"]
+        cnt = 0
         for tag in tag_list:
             if target in tag:
-                print(tag)
+                img = crop_image(os.path.join(output_dir, frame), tag)
+                file = os.path.join(target_dir, frame.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
+                img.save(file)
+                print(file)
+                cnt += 1
 
-target_search(".")
+target_search("/root/darknet_v2.0/results")
 exit()
 
 input_dirs = glob("input/*")
@@ -44,7 +57,7 @@ for input_dir in input_dirs:
             os.makedirs(output_dir)
 
         process_video(video, output_dir)
-        crop_images(output_dir)
+        target_search(output_dir)
 
 
 
