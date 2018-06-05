@@ -23,6 +23,12 @@ def crop_image(frame, tag):
     (top, bot, left, right) = (tag["top"], tag["bot"], tag["left"], tag["right"])
     print("Top:{} Bot:{} Left:{} Right:{}".format(top, bot, left, right))
 
+    (height, width) = frame.shape[0:1]
+    pad = 0.2
+
+    if top < pad * height or bot > (1-pad) * height or left < pad * width or right > (1-pad) * width:
+        return None
+
     img = frame[...,::-1]
     return Image.fromarray(img[top:bot, left:right])
 
@@ -48,10 +54,11 @@ def target_search(frames, output_dir, target="car"):
                 if 0 <= framenum and framenum < len(frames):
                     img = crop_image(frames[framenum], tag)
 
-                    file = os.path.join(target_dir, framename.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
-                    img.save(file)
-                    print(file)
-                    cnt += 1
+                    if img is not None:
+                        file = os.path.join(target_dir, framename.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
+                        img.save(file)
+                        print(file)
+                        cnt += 1
 
 
 input_dirs = glob("input/*")
