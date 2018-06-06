@@ -1,4 +1,5 @@
 /input
+/frames
 /output*
 
 yolo.weights
