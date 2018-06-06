@@ -23,7 +23,14 @@ def crop_image(frame, tag):
     return Image.fromarray(img[top:bot, left:right])
 
 
-def target_search(frames, output_dir, target="car"):
+def target_search(cap, output_dir, target="car"):
+    frame_idx = 1
+    suc, frame = cap.read()
+
+    if not suc:
+        print("Unable to read video")
+        return
+
     target_dir = os.path.join(output_dir, target)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
@@ -46,8 +53,13 @@ def target_search(frames, output_dir, target="car"):
                 framenum = int(re.sub("[^0-9]", "", framename))
                 print("Frame:", framenum)
 
-                if 0 <= framenum and framenum < len(frames):
-                    img = crop_image(frames[framenum], tag)
+                while frame_idx < framenum:
+                    cap.grab()
+                    frame_idx += 1
+                suc, frame = cap.retrieve()
+
+                if suc:
+                    img = crop_image(frame, tag)
 
                     if img is not None:
                         file = os.path.join(target_dir, framename.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
@@ -68,12 +80,7 @@ for input_dir in input_dirs:
             os.makedirs(output_dir)
 
         cap = cv2.VideoCapture(video)
-        frames = [None]
-        suc, frame = cap.read()
-        while suc:
-            frames.append(frame)
-            suc, frame = cap.read()
+        target_search(cap, output_dir)
         cap.release()
-        target_search(frames, output_dir)
 
 # os.system("darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights input/data/2017-08-16_18-07-18.avi -prefix output/frame")
