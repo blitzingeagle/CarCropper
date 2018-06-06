@@ -70,7 +70,8 @@ def target_search(cap, output_dir, target="car"):
 
 process_videos()
 
-input_dirs = sorted(glob("input/*"))
+# input_dirs = sorted(glob("input/*"))
+input_dirs = ["input/982"]
 for input_dir in input_dirs:
     videos = sorted(glob(os.path.join(input_dir, "*.avi")))
 
