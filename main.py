@@ -45,7 +45,7 @@ def target_search(output_dir, target="car"):
                 img = crop_image(os.path.join(output_dir, frame), tag)
 
                 if img is not None:
-                    file = os.path.join(target_dir, frame.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
+                    file = os.path.join(target_dir, frame.replace(".jpg", "_{}_{:03d}.jpg".format(target, cnt)))
                     img.save(file)
                     print(file)
                     cnt += 1

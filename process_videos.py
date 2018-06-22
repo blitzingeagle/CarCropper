@@ -9,7 +9,8 @@ if len(glob("yolo.weights")) == 0:
 
 
 def process_video(video, output_dir):
-    cmd = "darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights {} -avg 1 -prefix {}".format(video, os.path.join(output_dir, "frame"))
+    # cmd = "darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights {} -avg 1 -prefix {}".format(video, os.path.join(output_dir, "frame"))
+    cmd = "darknet detector demo cfg/license_plate.data cfg/license_plate.cfg license_plate_final.weights {} -avg 1 -prefix {}".format(video, os.path.join(output_dir, "frame"))
     print(">", cmd)
     os.system(cmd)
 

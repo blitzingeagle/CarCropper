@@ -14,7 +14,7 @@ def crop_image(frame, tag):
     print("Top:{} Bot:{} Left:{} Right:{}".format(top, bot, left, right))
 
     (height, width) = frame.shape[0:2]
-    pad = 0.0
+    pad = 0.05
 
     if top < pad * height or bot > (1-pad) * height or left < pad * width or right > (1-pad) * width:
         return None
@@ -40,6 +40,8 @@ def target_search(cap, output_dir, target="car"):
         print("File not found", data_file)
         return
 
+    os.system("cp {} {}".format(data_file, output_dir))
+
     with open(data_file) as f:
         frame_data = [line.strip() for line in f.readlines()]
 
@@ -47,8 +49,8 @@ def target_search(cap, output_dir, target="car"):
         info = json.loads(data)
         framename = os.path.basename(info["filename"])
         tag_list = info["tag"]
-        cnt = 0
-        for tag in tag_list:
+        cnt = 1
+        for idx, tag in enumerate(tag_list):
             if target in tag:
                 framenum = int(re.sub("[^0-9]", "", framename))
                 print("Frame:", framenum)
@@ -62,16 +64,19 @@ def target_search(cap, output_dir, target="car"):
                     img = crop_image(frame, tag)
 
                     if img is not None:
-                        file = os.path.join(target_dir, framename.replace(".jpg", "_{}_{:02d}.jpg".format(target, cnt)))
+                        file = os.path.join(target_dir, framename.replace(".jpg", "_obj_{:03d}.jpg".format(idx+1)))
                         img.save(file)
                         print(file)
                         cnt += 1
 
+    print("Found {} with tag {}.".format(cnt, target))
+    print(output_dir)
+    os.system("ls -l {} | wc -l".format(target_dir))
 
 process_videos()
 
-# input_dirs = sorted(glob("input/*"))
-input_dirs = ["input/982"]
+input_dirs = sorted(glob("input/*"))
+# input_dirs = ["input/982"]
 for input_dir in input_dirs:
     videos = sorted(glob(os.path.join(input_dir, "*.avi")))
 
@@ -80,8 +85,8 @@ for input_dir in input_dirs:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        cap = cv2.VideoCapture(video)
-        target_search(cap, output_dir)
-        cap.release()
+            cap = cv2.VideoCapture(video)
+            target_search(cap, output_dir, target="license_plate")
+            cap.release()
 
 # os.system("darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights input/data/2017-08-16_18-07-18.avi -prefix output/frame")
