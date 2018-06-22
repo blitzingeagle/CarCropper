@@ -2,4 +2,4 @@
 /frames
 /output*
 
-yolo.weights
+*.weights
