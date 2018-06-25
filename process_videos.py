@@ -14,8 +14,8 @@ def process_video(video, output_dir):
     print(">", cmd)
     os.system(cmd)
 
-def process_videos():
-    input_dirs = sorted(glob("input/*"))
+def process_videos(directory):
+    input_dirs = sorted(glob(os.path.join(directory, "*")))
     for input_dir in input_dirs:
         videos = sorted(glob(os.path.join(input_dir, "*.avi")))
 
