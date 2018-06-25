@@ -5,16 +5,16 @@ from PIL import Image
 import cv2
 import numpy as np
 import re
+from argparse import ArgumentParser
 
 from process_videos import process_videos
 
 
-def crop_image(frame, tag):
+def crop_image(frame, tag, pad=0.0):
     (top, bot, left, right) = (tag["top"], tag["bot"], tag["left"], tag["right"])
     print("Top:{} Bot:{} Left:{} Right:{}".format(top, bot, left, right))
 
     (height, width) = frame.shape[0:2]
-    pad = 0.05
 
     if top < pad * height or bot > (1-pad) * height or left < pad * width or right > (1-pad) * width:
         return None
@@ -23,7 +23,7 @@ def crop_image(frame, tag):
     return Image.fromarray(img[top:bot, left:right])
 
 
-def target_search(cap, output_dir, target="car"):
+def target_search(cap, video_output, frames_dir, output_dir, target="car", padding=0.0):
     frame_idx = 1
     suc, frame = cap.read()
 
@@ -31,16 +31,16 @@ def target_search(cap, output_dir, target="car"):
         print("Unable to read video")
         return
 
-    target_dir = os.path.join(output_dir, target)
+    target_dir = os.path.join(video_output, target)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    data_file = os.path.join(output_dir.replace("output", "frames"), "frame.txt")
+    data_file = os.path.join(video_output.replace(output_dir, frames_dir), "frame.txt")
     if not os.path.isfile(data_file):
         print("File not found", data_file)
         return
 
-    os.system("cp {} {}".format(data_file, output_dir))
+    os.system("cp {} {}".format(data_file, video_output))
 
     with open(data_file) as f:
         frame_data = [line.strip() for line in f.readlines()]
@@ -61,7 +61,7 @@ def target_search(cap, output_dir, target="car"):
                 suc, frame = cap.retrieve()
 
                 if suc:
-                    img = crop_image(frame, tag)
+                    img = crop_image(frame, tag, pad=padding)
 
                     if img is not None:
                         file = os.path.join(target_dir, framename.replace(".jpg", "_obj_{:03d}.jpg".format(idx+1)))
@@ -69,26 +69,44 @@ def target_search(cap, output_dir, target="car"):
                         print(file)
                         cnt += 1
 
-    print("Found {} with tag {}.".format(cnt, target))
-    print(output_dir)
+    print(video_output)
     os.system("ls -l {} | wc -l".format(target_dir))
 
-directory = "input"
+parser = ArgumentParser("Cropped results of YOLO.")
+parser.add_argument("-t", "--target", type=str, metavar="TARGET", help="Target label from detector.")
+parser.add_argument("-i", "--input", type=str, default="./videos", metavar="INPUT", help="Input video or directory.")
+parser.add_argument("-f", "--frames", type=str, default="./frames", metavar="FRAMES", help="Frames directory path.")
+parser.add_argument("-o", "--output", type=str, default="./output", metavar="OUTPUT", help="Output directory path.")
+parser.add_argument("-p", "--padding", type=float, default=0.0, metavar="PADDING", help="Padding to ignore detections.")
 
-process_videos(directory)
+args = parser.parse_args()
 
-input_dirs = sorted(glob(os.path.join(directory, "*")))
-# input_dirs = ["input/982"]
-for input_dir in input_dirs:
+if args.target is None:
+    parser.print_help()
+    exit(0)
+
+input_dir = args.input
+frames_dir = args.frames
+output_dir = args.output
+target = args.target
+
+
+if os.path.isfile(args.input):
+    videos = [args.input]
+    input_dir = os.path.dirname(input_dir)
+else:
     videos = sorted(glob(os.path.join(input_dir, "*.avi")))
 
-    for video in videos:
-        output_dir = os.path.splitext(video)[0].replace("input", "output")
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+process_videos(input_dir, frames_dir)
 
-            cap = cv2.VideoCapture(video)
-            target_search(cap, output_dir, target="car")
-            cap.release()
+for video in videos:
+    video_output = os.path.splitext(video)[0].replace(input_dir, output_dir)
+    if not os.path.exists(video_output):
+        os.makedirs(video_output)
+
+        cap = cv2.VideoCapture(video)
+        target_search(cap, video_output, frames_dir, output_dir, target=target, padding=args.padding)
+        cap.release()
 
 # os.system("darknet detector demo cfg/coco.data cfg/yolo.cfg yolo.weights input/data/2017-08-16_18-07-18.avi -prefix output/frame")
+
