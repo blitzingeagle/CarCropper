@@ -1,13 +1,11 @@
 import os
 from glob import glob
 
-darknet_path = "/root/darknet_v2.0"
-os.environ["PATH"] = darknet_path + ":" + os.environ["PATH"]
+if len(glob(os.path.join(os.environ.get("DARKNET_PATH"), "weights/yolo.weights"))) == 0:
+    os.system("mkdir -p {}".format(os.path.join(os.environ.get("DARKNET_PATH"), "weights")))
+    os.system("wget https://pjreddie.com/media/files/yolo.weights -P {}".format(os.path.join(os.environ.get("DARKNET_PATH"), "weights")))
 
-if len(glob("weights/yolo.weights")) == 0:
-    os.system("mkdir -p weights")
-    os.system("wget https://pjreddie.com/media/files/yolo.weights -P weights")
-
+#if len(glob(os.path.join(os.environ.get("DARKNET_PATH"), "cfg/coco.data"))) == 0:
 
 def process_video(video, output_dir):
     cmd = "darknet detector demo cfg/coco.data cfg/yolo.cfg weights/yolo.weights {} -avg 1 -prefix {}".format(video, os.path.join(output_dir, "frame"))
@@ -15,8 +13,9 @@ def process_video(video, output_dir):
     print(">", cmd)
     os.system(cmd)
 
-def process_videos(input_dir, frames_dir):
-    videos = sorted(glob(os.path.join(input_dir, "*.avi")))
+def process_videos(input_dir, frames_dir, videos=None):
+    if videos is None:
+        videos = sorted(glob(os.path.join(input_dir, "*.avi")))
 
     for video in videos:
         output_dir = os.path.splitext(video)[0].replace(input_dir, frames_dir)

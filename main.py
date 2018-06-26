@@ -97,7 +97,10 @@ if os.path.isfile(args.input):
 else:
     videos = sorted(glob(os.path.join(input_dir, "*.avi")))
 
-process_videos(input_dir, frames_dir)
+if output_dir[-1] == "/":
+    output_dir = output_dir[:-1]
+
+process_videos(input_dir, frames_dir, videos)
 
 for video in videos:
     video_output = os.path.splitext(video)[0].replace(input_dir, output_dir)
