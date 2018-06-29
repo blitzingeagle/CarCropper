@@ -35,7 +35,7 @@ def target_search(cap, video_output, frames_dir, output_dir, target="car", paddi
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    data_file = os.path.join(video_output.replace(output_dir, frames_dir), "frame.txt")
+    data_file = os.path.join(video_output.replace(output_dir, frames_dir), "result.txt")
     if not os.path.isfile(data_file):
         print("File not found", data_file)
         return
@@ -94,13 +94,15 @@ target = args.target
 if os.path.isfile(args.input):
     videos = [args.input]
     input_dir = os.path.dirname(input_dir)
+    single = True
 else:
     videos = sorted(glob(os.path.join(input_dir, "*.avi")))
+    single = False
 
 if output_dir[-1] == "/":
     output_dir = output_dir[:-1]
 
-process_videos(input_dir, frames_dir, videos)
+process_videos(input_dir, frames_dir, videos, single)
 
 for video in videos:
     video_output = os.path.splitext(video)[0].replace(input_dir, output_dir)
