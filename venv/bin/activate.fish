@@ -32,7 +32,7 @@ end
 # unset irrelavent variables
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/workspace/CropYOLO/venv"
+set -gx VIRTUAL_ENV "/workspace/CropYOLO/venv2"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
@@ -55,8 +55,8 @@ if test -z "$VIRTUAL_ENV_DISABLE_PROMPT"
     # with the original prompt function renamed, we can override with our own.
     function fish_prompt
         # Prompt override?
-        if test -n "$(venv) "
-            printf "%s%s%s" "$(venv) " (set_color normal) (_old_fish_prompt)
+        if test -n "$(venv2) "
+            printf "%s%s%s" "$(venv2) " (set_color normal) (_old_fish_prompt)
             return
         end
         # ...Otherwise, prepend env
